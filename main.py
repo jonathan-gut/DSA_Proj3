@@ -20,7 +20,7 @@ for i in range(epochs):
 
 #----Get user input
 x_pred = int(input("How many days from "+ data['Date'][0] + " would you like to predict the price of AAPL?"))
-y_pred =  ((m*x_pred) + b)/
+y_pred =  ((m*x_pred) + b)
 print("Predicted price: ", y_pred)
 
 #---------Displaying Graph------------------------#
