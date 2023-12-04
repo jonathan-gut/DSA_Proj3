@@ -80,7 +80,7 @@ while (run):
 
     # Linear Regression
     print("Training Models...")
-    m, b, L, epochs = 0, 0, 0.000000001, 10
+    m, b, L, epochs = 0, 0, 0.00001, 10
     for i in range(epochs):
         m, b = gradient_descent(m, b, data, L)
 
