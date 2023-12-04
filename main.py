@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+
+#Functions for Linear Regression
 def gradient_descent(m_now, b_now, data, L): #Gradient Descent function
     m_gradient = 0
     b_gradient = 0
@@ -17,8 +17,38 @@ def gradient_descent(m_now, b_now, data, L): #Gradient Descent function
 
     m = m_now - m_gradient * L
     b = b_now - b_gradient * L
-    return m,b
+    return m,b #O(n)
 
+#Functions for Polynomial Regression
+
+def create_polynomial_features(X, degree):
+    X_poly = np.ones((len(X), 1))
+    for i in range(1, degree + 1):
+        X_poly = np.c_[X_poly, X ** i]
+    return X_poly #O(n*d) where n is len of X column and d is degree
+def normal_equation(X, Y):
+    return np.linalg.inv(X.T.dot(X)).dot(X.T).dot(Y) #O(m^3)
+def predict(X, coefficients):
+    return X.dot(coefficients) #O(n*d)
+def predict_Y_for_given_X(X_poly, coefficients):
+    return np.dot(X_poly, coefficients) #O(m)
+def create_polynomial_features_for_single_X(X, degree):
+    X_poly = np.ones(1)
+    for i in range(1, degree + 1):
+        X_poly = np.append(X_poly, X ** i)
+    return X_poly.reshape(1, -1) #O(d)
+
+'''
+For time complexities
+d = # of degrees
+n = # of rows in csv (aka # of days)
+m = # of features (aka independent vars + poly features)
+def gradient_descent(m_now, b_now, data, L): O(n)
+def create_polynomial_features(X, degree): O(n*d)
+def normal_equation(X, Y): O(m^3)
+def predict_Y_for_given_X(X_poly, coefficients): O(m)
+def create_polynomial_features_for_single_X(X, degree): O(d)
+'''
 run = True
 while (run):
     # Get user input for which stock to predict
@@ -58,38 +88,37 @@ while (run):
 
     # ------Polynomial Regression----------
     # Extract X and Y columns
-    X = data['Day'].values.reshape(-1, 1)
+    X = data['Day'].values
     Y = data['Price'].values
 
     # Polynomial degree
     degree = 3  # Change this to the desired degree of the polynomial
 
     # Transforming features to polynomial features
-    poly = PolynomialFeatures(degree=degree)
-    X_poly = poly.fit_transform(X)
+    X_poly = create_polynomial_features(X, degree)
+    coefficients = normal_equation(X_poly, Y)
 
-    # Fitting polynomial features into a linear regression model
-    model = LinearRegression()
-    model.fit(X_poly, Y)
 
     # Predicting on training data
-    Y_pred = model.predict(X_poly)
+    Y_pred = predict(X_poly, coefficients)
 
     print("Polynomial Regression Fit completed")
 
     # ----Use Model to predict -----------#
     x_pred = int(input("How many days from " + data['Date'][0] + " would you like to predict the price of " + stocks[
         userInput] + "? "))
-    y_pred = ((m * x_pred) + b)
+    y_pred = ((m * x_pred) + b) #basic linear formula y = mx + b
 
-    new_X = np.array([[x_pred]])  # Reshape the value as a 2D array to match the input format
-    new_X_poly = poly.transform(new_X)  # Transform the new X value into polynomial features
+    # Transform the given X value into polynomial features
+    given_X_poly = create_polynomial_features_for_single_X(x_pred, degree)
 
-    # Use the fitted polynomial model to predict Y for the new X value
-    predicted_Y = model.predict(new_X_poly)
+    # Predict the Y value for the given X
+    predicted_Y = predict_Y_for_given_X(given_X_poly, coefficients)
 
-    print("\nLinear Regression: ", y_pred)
-    print(f"Polynomial Regression : {predicted_Y[0]}")
+
+    print(f"\nLinear Regression: ${y_pred} ")
+    print(f"Polynomial Regression: ${predicted_Y[0]} \n")
+
 
     # ---------Displaying Graph------------------------#
     plt.scatter(data.Day, data.Price, color='black')
